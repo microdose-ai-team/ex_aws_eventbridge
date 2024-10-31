@@ -49,6 +49,62 @@ defmodule ExAws.EventBridge do
   end
 
   @doc """
+  Create a schedule
+
+  ## Examples
+  ```
+  EventBridge.create_schedule("new-schedule", []) |> ExAws.request()
+  required field:
+        %{
+        "Name" => name,
+        "FlexibleTimeWindow" => %{"Mode" => "OFF"},
+        "ScheduleExpression" => "at(2024-10-30T10:10:10)",
+        "ClientToken" => "1",
+        "Target" => %{
+          "Arn" => "arn:aws:events:us-west-2:339712881470:event-bus/mga-wordpress-post-scheduler",
+          "RoleArn" => "arn:aws:iam::339712881470:role/event_role"
+        }
+      }
+  ```
+  """
+  @spec create_schedule(name :: binary, opts :: Keyword.t()) :: JSON.t()
+  def create_schedule(name, opts \\ []) do
+    data =
+      %{"Name" => name}
+      |> Map.merge(opts_to_data(opts))
+
+    schedule_request(:create_schedule, :post, data)
+  end
+
+  @doc """
+  Create a schedule
+
+  ## Examples
+  ```
+  EventBridge.create_schedule("new-schedule", []) |> ExAws.request()
+  required field:
+        %{
+        "Name" => name,
+        "FlexibleTimeWindow" => %{"Mode" => "OFF"},
+        "ScheduleExpression" => "at(2024-10-30T10:10:10)",
+        "ClientToken" => "1",
+        "Target" => %{
+          "Arn" => "arn:aws:events:us-west-2:339712881470:event-bus/mga-wordpress-post-scheduler",
+          "RoleArn" => "arn:aws:iam::339712881470:role/event_role"
+        }
+      }
+  ```
+  """
+  @spec delete_schedule(name :: binary, opts :: Keyword.t()) :: JSON.t()
+  def delete_schedule(name, opts \\ []) do
+    data =
+      %{"Name" => name}
+      |> Map.merge(opts_to_data(opts))
+
+    schedule_request(:delete_schedule, :delete, data)
+  end
+
+  @doc """
   Delete an event bus
 
   ## Example
@@ -107,6 +163,29 @@ defmodule ExAws.EventBridge do
       }
       |> Map.merge(opts)
     )
+  end
+
+  defp schedule_request(operation, method, data, opts \\ %{}) do
+    JSON.new(
+      :scheduler,
+      %{
+        data: data,
+        http_method: method,
+        headers: headers(operation),
+        path: "/schedules/#{data["Name"]}"
+      }
+      |> Map.merge(opts)
+    )
+    |> IO.inspect()
+  end
+
+  defp headers(:create_schedule) do
+    [
+      # {"x-amz-target", "#{@target_prefix}.#{atom_to_string(:create_schedule)}"},
+      {"x-amz-target", "#{@target_prefix}.CreateSchedule"},
+      {"content-type", "application/x-amz-json-1.1"}
+      # {"content-type", "application/json"}
+    ]
   end
 
   defp headers(operation) do
